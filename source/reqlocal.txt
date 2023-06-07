@@ -1,0 +1,18 @@
+import os
+
+NYSETtickerlist = 'https://old.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange=nyse&render=download'
+NASDAQtickerlist = 'https://old.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange=nasdaq&render=download'
+AMEXtickerlist = 'https://old.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange=amex&render=download'
+apikey = '1SF8KX5OUR4HHFRF'
+backtestdatapath = 'D:/pycharm_projects/Quantheus/Data/MarketData'
+livedatapath = None
+PortfolioPath = None
+Signalspath = None
+subtradespath = None
+subsellpath = None
+openedpositionspath = None
+closedpositionspath = None
+logpath = None
+ranpath = None
+InitialMargReq = .5
+MinMargReq = .3

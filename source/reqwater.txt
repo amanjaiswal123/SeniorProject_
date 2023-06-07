@@ -1,0 +1,16 @@
+import os
+
+NYSETtickerlist = 'https://old.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange=nyse&render=download'
+NASDAQtickerlist = 'https://old.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange=nasdaq&render=download'
+AMEXtickerlist = 'https://old.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange=amex&render=download'
+apikey = '1SF8KX5OUR4HHFRF'
+backtestdatapath = '/home/hduser/Quantheus/Data/MarketData'
+livedatapath = '/home/hduser/Quantheus/Data/MarketData/BacktestData'
+PortfolioPath = '/home/hduser/QuantheusLiveTesting/Data/portfolio'
+Signalspath = '/home/hduser/QuantheusLiveTesting/Data/Signals'
+subtradespath = '/home/hduser/QuantheusLiveTesting/Data/subtrades'
+openedpositionspath = '/home/hduser/QuantheusLiveTesting/Data/openedpositions'
+closedpositionspath = '/home/hduser/QuantheusLiveTesting/Data/closedpositions'
+ranpath = '/home/hduser/QuantheusLiveTesting/Data/Ran'
+InitialMargReq = .5
+MinMargReq = .3

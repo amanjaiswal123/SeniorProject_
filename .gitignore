@@ -1,0 +1,5 @@
+/venv/
+/config/
+/Data/*
+.idea/
+
