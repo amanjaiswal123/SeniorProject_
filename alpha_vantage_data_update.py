@@ -32,7 +32,7 @@ while True:
         except Exception as e:
             todaydata.to_csv(logpath+'todaydata_tiingo_'+Today+'.csv')
             print("Could not download data from tiingo on"+Today)
-            notify("Could not download data from tiingo on"+Today)
+            #notify("Could not download data from tiingo on"+Today)
             raise e
         if len(todaydata) > 0:
             todaydata.to_csv(logpath+'todaydata_alphavantage_' + recent_date_rds+'_'+recent_trading_day + '.csv')

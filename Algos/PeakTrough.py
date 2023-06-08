@@ -1,8 +1,6 @@
 from source.Backtest import Backtest
 import pandas
-from source.Commons import notify, TradingDays
-import pandas
-from datetime import datetime, timedelta
+from datetime import datetime
 from source.Commons import TradingDays, datadateslice
 from source.Indicators import _PeakTroughs,_RSI
 import numpy
@@ -141,5 +139,4 @@ def UpTrend(Fields, Portfolio, aval_cash, net_worth, datadate, first_calc, YSign
     Pipe['Action'][Pipe.index.isin(Pipe.head(1000).index)] = 'buy'
     Pipe.sort_values('Potential Gain',ascending=False,inplace=True)
     return Pipe
-#Realtime(UpTrend,365*5)
 Backtest(UpTrend,End_Date='2017-04-16',Start_Date='2016-04-09',StartingOffset=365,SC=100000,BacktestTitle='PeakTroughP60MKSTPLMT')

@@ -48,9 +48,11 @@ def Backtest(func,WData=['all'],End_Date=_datadate(), Start_Date=None, Days=None
         #Checking if we have data for the dates you specified. If we do not the backtest will not run
         DatesinData = set(list(Data.index.get_level_values('dat')))
         if End_Date not in DatesinData:
-            raise Exception('We do not have marketdata after',End_Date, 'we only have data before',DatesinData[len(DatesinData)-1],'please adjust your End_Date argument accordingly')
+            error_msg = 'We do not have marketdata after ' + str(End_Date) + ' we only have data before '+str(DatesinData[len(DatesinData)-1])+' please adjust your End_Date argument accordingly'
+            raise Exception(error_msg)
         if Start_Date not in DatesinData:
-            raise Exception('We do not have marketdata before',Start_Date, 'we only have data after',DatesinData[0],'please adjust your Start_Date argument accordingly. Your starting offset will also effect your start date as the actual start date will be the startdate-starting offset')
+            error_msg = 'We do not have marketdata after ' + str(End_Date) + ' we only have data before '+str(DatesinData[len(DatesinData)-1])+' please adjust your End_Date argument accordingly'
+            raise Exception(error_msg)
         #Getting all the dates that should be in the Data by filtering trading days between the start and end dates
         Dates = GetTradingDays(Start_Date,End_Date)
         Start_Date = str(datetime.strptime(Start_Date, '%Y-%m-%d') + timedelta(days=StartingOffset))[0:10]
@@ -171,11 +173,14 @@ def Backtest(func,WData=['all'],End_Date=_datadate(), Start_Date=None, Days=None
 
             #You can place buy and sell orders in two ways. Either creating negative quantities for sell orders and positive quantities for buy orders, or you can use the Action column and explicitly state if it is a buy or sell signal. The action column will over rule a negative or positive value. For example if you pass a negative quantity with a action value of buy, it will be processed as a buy order.
             if "Action" in Signals.columns: #If the Action column is defined then we will make all orders with a sell action have a negative quantity and all orders with a buy action a positive quantity, regardless of it's original sign.
-                Signals["Action"] = Signals['Action'].str.lower() #taking capitalization out of the values to make it simpler to index
-                Signals["Quantity"][(Signals["Action"] == "close") & Signals.index.isin(Portfolio.index)] = Portfolio["Amount Holding"][Portfolio.index.isin(Signals[(Signals["Action"] == "close")].index)] * -1             #Creating orders for orders with a close action - TBC if a close action is specified it should automatically close that position
-                Signals["Action"][(Signals["Action"] == "close") & ~Signals.index.isin(Portfolio.index)] = "nothing"
-                Signals["Quantity"][(Signals["Action"] == "sell") & (Signals["Quantity"] > 0)] = Signals["Quantity"][(Signals["Action"] == "sell") & (Signals["Quantity"] > 0)]*-1 #Make sure all sell orders are a negative quantity
-                Signals["Quantity"][(Signals["Action"] == "buy") & (Signals["Quantity"] < 0)] = Signals["Quantity"][(Signals["Action"] == "buy") & (Signals["Quantity"] < 0)]*-1 #Make sure all buy orders are a positive quantity
+                if "Quantity" in Signals.columns:
+                    Signals["Action"] = Signals['Action'].str.lower() #taking capitalization out of the values to make it simpler to index
+                    Signals["Quantity"][(Signals["Action"] == "close") & Signals.index.isin(Portfolio.index)] = Portfolio["Amount Holding"][Portfolio.index.isin(Signals[(Signals["Action"] == "close")].index)] * -1             #Creating orders for orders with a close action - TBC if a close action is specified it should automatically close that position
+                    Signals["Action"][(Signals["Action"] == "close") & ~Signals.index.isin(Portfolio.index)] = "nothing"
+                    Signals["Quantity"][(Signals["Action"] == "sell") & (Signals["Quantity"] > 0)] = Signals["Quantity"][(Signals["Action"] == "sell") & (Signals["Quantity"] > 0)]*-1 #Make sure all sell orders are a negative quantity
+                    Signals["Quantity"][(Signals["Action"] == "buy") & (Signals["Quantity"] < 0)] = Signals["Quantity"][(Signals["Action"] == "buy") & (Signals["Quantity"] < 0)]*-1 #Make sure all buy orders are a positive quantity
+                else:
+                    Signals['Quantity'] = numpy.nan
             else: #If the column does not exist create an empty Action Column
                 Signals["Action"] = numpy.nan #creating the empty action column
             #After we either change the Action column based on the sign of the quantity, or create a empty Action column if it was not defined. We will fill the NA action values using the sign of the quantity.
@@ -212,6 +217,12 @@ def Backtest(func,WData=['all'],End_Date=_datadate(), Start_Date=None, Days=None
                 #New Positions are handled differently, they must go through an integrity check before being transacted. The integrity check ensures that we have all the data for that position for the time we want to keep it open. The integrity check works by comparing the dates between when you open the position and when you anticipate to close it to the dates in Data for that position. If a day of data is missing that day will not be in the dates for Data. If both lists are equal the we have all the data for the position until the anticipated close date. The anticipated close date is only known when the user defines the holding period. If no holding period is defined. If no holding period is defined then we do not check the integrity .the  original date the position was first opened on will also be defined.
                 #If the holding period is not defined should we check all the data until the end of the backtest?
                 #How do we handle orders that are modified?
+                if "Today's Close" not in orders.columns.values:
+                    todaysClose = Fields['close'][(Fields['close'].index.get_level_values('dat') == datadate)].reset_index('dat')['close']
+                    orders["Today's Close"] = todaysClose[todaysClose.index.isin(orders.index)]
+                if "Today's Adjusted Close" not in orders.columns.values:
+                    todaysAdjClose = Fields['adj_close'][(Fields['adj_close'].index.get_level_values('dat') == datadate)].reset_index('dat')['adj_close']
+                    orders["Today's Adjusted Close"] = todaysAdjClose[todaysAdjClose.index.isin(orders.index)]
                 new_position = ~orders.index.isin(Portfolio.index)#Getting new positions by filtering to only positions that are not already in our portfolio
                 orders['Opened Position On'] = numpy.nan #Creatin a empty open position on column
                 orders['Opened Position On'][new_position] = Today #Adding today's date to only the new positions
@@ -256,7 +267,7 @@ def Backtest(func,WData=['all'],End_Date=_datadate(), Start_Date=None, Days=None
 
 
                 if len(orders) > 0: #if no orders passed the Integrity Check further order processing is not required.
-                    # Checking if Quantity or Allocation is defined. If one is defined we will use it to calculate the other. If neither is defined we will the value of both columns to nans
+                    # Checking if Quantity or Allocation is defined. If one is defined we will use it to calculate the other. If neither is defined we will fill the value of both columns to nans
                     if 'Quantity' in orders.columns: #Checking for the quantity column
                         if 'Allocation' in orders.columns: #If the Allocation column is defined then use both columns to fill the missing values in the other column
                             QuantityNA = orders['Quantity'].isna() #Finding na values in Quantity
@@ -271,7 +282,7 @@ def Backtest(func,WData=['all'],End_Date=_datadate(), Start_Date=None, Days=None
                         else: #If both columns are not defined the set the values for both to na
                             orders['Quantity'] = numpy.nan #Setting Quantity to NA
                             orders['Allocation'] = numpy.nan #Setting Allocation to NA
-                    if  len(orders[orders['Quantity'].isna() & orders['Allocation'].isna()]) > 0: #If there are rows with no Allocation or Quantity defined we drop them as thier is not enough information to place a order.
+                    if len(orders[orders['Quantity'].isna() & orders['Allocation'].isna()]) > 0: #If there are rows with no Allocation or Quantity defined we drop them as thier is not enough information to place a order.
                         warn("Some orders were dropped because there was no Allocation or Quantity Specified") #Warning the user that he did not define a Quantity or Allocation for some rows
                         orders.drop(index=orders[orders['Quantity'].isna() & orders['Allocation'].isna()].index,inplace=True) #Dropping orders without a Quantity or Allocation defined.
 
@@ -583,8 +594,10 @@ def Backtest(func,WData=['all'],End_Date=_datadate(), Start_Date=None, Days=None
                     short = Portfolio["Amount Holding"] < 0
                     Portfolio["Position Worth"] = Portfolio["Yesterday's Adjusted Close"] * Portfolio["Amount Holding"]  # Calculating the worth of your portfolio based on Yesterday's Adjusted close
                     Portfolio["Position Worth"][short] = Portfolio["Position Worth"][short]*-1
-                    Portfolio['Total Change'] = ((Portfolio["Yesterday's Adjusted Close"]-Portfolio['purchase price'])/Portfolio['purchase price']) #The total change of a position in our portfolio from the adjusted close two days ago
-                    Portfolio["Total Change"][short] = ((Portfolio['purchase price'][short]-Portfolio["Yesterday's Adjusted Close"][short])/Portfolio['purchase price'][short]) #The total change of a
+                    not0 = Portfolio["purchase price"] != 0
+                    Portfolio['Total Change'] = numpy.nan #Creating a column for the total change of a position
+                    Portfolio['Total Change'][not0] = ((Portfolio["Yesterday's Adjusted Close"][not0]-Portfolio['purchase price'][not0])/Portfolio['purchase price'][not0]) #The total change of a position in our portfolio from the adjusted close two days ago
+                    Portfolio["Total Change"][short & not0] = ((Portfolio['purchase price'][short & not0]-Portfolio["Yesterday's Adjusted Close"][short & not0])/Portfolio['purchase price'][short & not0]) #The total change of a
                     # Figuring out the max drawdown of a position
                     Portfolio['max drawdown'][Portfolio['max drawdown'].isna()] = 0
                     Portfolio['max drawdown'][(Portfolio['Total Change'] < Portfolio['max drawdown'])] = Portfolio['Total Change'][(Portfolio['Total Change'] < Portfolio['max drawdown'])]
@@ -641,7 +654,7 @@ def Backtest(func,WData=['all'],End_Date=_datadate(), Start_Date=None, Days=None
     except Exception as e:
         print(e)
         #notify('The '+BacktestTitle+'_'+Start_Date+'-'+End_Date+' backtest has failed')
-        #Transactions.to_csv(BacktestTitle+'_'+Start_Date+'-'+End_Date+'_Transactions.csv')
+        Transactions.to_csv(BacktestTitle+'_'+Start_Date+'-'+End_Date+'_Transactions.csv')
         Daily_Balances.to_csv(BacktestTitle+'_'+Start_Date+'-'+End_Date+'_DailyBalances.csv')
         #Daily_Values.to_csv(BacktestTitle+'_'+Start_Date+'-'+End_Date+'_Daily_Values.csv')
         print('\nBackTest Failed on',Dates[len(Dates)-1],'with','$'+str(net_worth))
@@ -656,4 +669,4 @@ def Backtest(func,WData=['all'],End_Date=_datadate(), Start_Date=None, Days=None
     #Daily_Values.to_csv(BacktestTitle + '_' + Start_Date + '-' + End_Date + '_Daily_Values.csv')
     print('\nBackTest Completed on', Dates[len(Dates) - 1], 'with', '$' + str(net_worth))
     print('\nTotal Gain:', str(((net_worth - SC) / SC) * 100) + '%')
-    notify('The '+BacktestTitle+'_'+Start_Date+'-'+End_Date+' backtest has finished')
+    #notify('The '+BacktestTitle+'_'+Start_Date+'-'+End_Date+' backtest has finished')

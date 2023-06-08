@@ -24,13 +24,13 @@ while True:
         conn = create_engine('postgresql+psycopg2://' + qtheus_rds['user'] + ':' + qtheus_rds['password'] + '@' + qtheus_rds['host'] + '/' + qtheus_rds['dbname'])  # Connection to upload to database
     except Exception as e:  # catch exception and notify
         print("Connection Error: Could not connect sql alchemy to Database to clean ticker list")
-        notify("Connection Error: Could not connect sql alchemy to Database ")
+        #notify("Connection Error: Could not connect sql alchemy to Database ")
         raise e
     try:
         p_conn = psycopg2.connect(dbname=qtheus_rds['dbname'], user=qtheus_rds['user'], host=qtheus_rds['host'],password=qtheus_rds['password'])  # Connection to get table columns as they must match
     except Exception as e:
         print("Connection Error: Could not connect psycopg2 to Database to clean ticker list")
-        notify("Connection Error: Could not connect psycopg2 to Database to clean ticker list")
+        #notify("Connection Error: Could not connect psycopg2 to Database to clean ticker list")
         raise e
     # Get all tables in the ticker_list schema. It will gather all the data and scrub it into one list
     db_cursor = p_conn.cursor()

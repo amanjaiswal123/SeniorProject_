@@ -84,7 +84,7 @@ def symbols_alpha(Exchange):
                 print('Could not find Data for',x,'Current Error Rate is',Errors/len(Symbols))
                 if Errors/len(Symbols) > .5:
                     if not warned:
-                        notify("Data pull for "+Exchange+"errors are exceeding 50%")
+                        #notify("Data pull for "+Exchange+"errors are exceeding 50%")
                         warned = True
         except Exception as e:
             #In case some other error happens while requesting the data
@@ -154,7 +154,7 @@ try:
     todaydata = NYSEandNASDAQData()
 except Exception as e:
     print("Could not download data from alpha vantage on"+Today)
-    notify("Could not download data from alpha vantage on"+Today,'#Quantheus')
+    #notify("Could not download data from alpha vantage on"+Today,'#Quantheus')
     todaydata.to_csv('todaydata.csv')
     raise e
 todaydata.to_csv('todaydata.csv')

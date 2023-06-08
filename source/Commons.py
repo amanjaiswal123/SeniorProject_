@@ -349,14 +349,14 @@ def upload_to_rds_table(data_,table:str,dbname=qtheus_rds['dbname'],user=qtheus_
             'postgresql+psycopg2://' + user + ':' + password + '@' + host + '/' + dbname)  # Connection to upload to database
     except Exception as e:  # catch exception and notify
         print("Connection Error: Could not connect sql alchemy to Database " + table)
-        notify("Connection Error: Could not connect sql alchemy to Database " + table)
+        #notify("Connection Error: Could not connect sql alchemy to Database " + table)
         raise e
     try:
         p_conn = psycopg2.connect(dbname=dbname, user=user, host=host,
                                   password=password)  # Connection to get table columns as they must match
     except Exception as e:
         print("Connection Error: Could not connect psycopg2 to Database " + table)
-        notify("Connection Error: Could not connect psycopg2 to Database " + table)
+        #notify("Connection Error: Could not connect psycopg2 to Database " + table)
         raise e
     uploaded_rows = 0
     not_uploaded_rows = 0
@@ -439,7 +439,7 @@ def upload_to_rds_table(data_,table:str,dbname=qtheus_rds['dbname'],user=qtheus_
                         uploaded_rows += len(new_rows)
                     except Exception as e:
                         print("Connection Error: Could not upload to \n"+table+str(e))
-                        notify("Connection Error: Could not upload to \n"+table+str(e))
+                        #notify("Connection Error: Could not upload to \n"+table+str(e))
                         print('\n\nTrying to Upload Row By Row\n\n')
                         total_time_row = []
                         new_rows_len = len(new_rows)
@@ -452,7 +452,7 @@ def upload_to_rds_table(data_,table:str,dbname=qtheus_rds['dbname'],user=qtheus_
                             except Exception as e:
                                 if not save_errors:  # if we are not saving the errors raise it
                                     print("Connection Error: Could not upload to " + table)
-                                    notify("Connection Error: Could not upload to " + table)
+                                    #notify("Connection Error: Could not upload to " + table)
                                     raise e
                                 else:  # if we are saving errors do not raise the error rather add it to a df, if the error cannot be added to the df then print it
                                     try:
@@ -482,7 +482,7 @@ def upload_to_rds_table(data_,table:str,dbname=qtheus_rds['dbname'],user=qtheus_
                         except Exception as e:
                             if not save_errors: #if we are not saving the errors raise it
                                 print("Connection Error: Could not upload to "+table)
-                                notify("Connection Error: Could not upload to "+table)
+                                #notify("Connection Error: Could not upload to "+table)
                                 raise e
                             else: #if we are saving errors do not raise the error rather add it to a df, if the error cannot be added to the df then print it
                                 try:

@@ -262,7 +262,7 @@ def data_scrub(data,index,dbname=qtheus_rds['dbname'],user=qtheus_rds['user'],ho
         conn = create_engine('postgresql+psycopg2://' + user + ':' + password + '@' + host + '/' +dbname)  # Connection to upload to database
     except Exception as e:  # catch exception and notify
         print("Connection Error: Could not connect sql alchemy to Database to clean data")
-        notify("Connection Error: Could not connect sql alchemy to Database to clean data")
+        #notify("Connection Error: Could not connect sql alchemy to Database to clean data")
         raise e
     try:
         p_conn = connect(dbname=qtheus_rds['dbname'], user=qtheus_rds['user'], host=qtheus_rds['host'],password=qtheus_rds['password'])  # Connection to get table columns as they must match

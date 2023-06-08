@@ -21,7 +21,7 @@ while True:
         tickers['exchange'] = 'nasdaq'
     except Exception as e:
         print("Could not get tickers from nasdaq_trader on",datetime.now())
-        notify("nasdaq trader ticker list update has failed")
+        #notify("nasdaq trader ticker list update has failed")
         raise e
     tickers = tickers[]
     upload_to_rds_table(tickers,'nasdaq_trader',schema='ticker_lists',index=['ticker','exchange'],row_by_row=True,save_errors=True)
